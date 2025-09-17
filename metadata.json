@@ -1,0 +1,7 @@
+{
+  "name": "Health Symptom Chatbot",
+  "description": "A chatbot that helps users understand their health concerns by providing possible causes and suggestions based on their symptoms. Supports English and Hindi. This is for informational purposes only and is not a substitute for professional medical advice.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
