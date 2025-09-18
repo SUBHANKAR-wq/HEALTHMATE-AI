@@ -1,6 +1,6 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Language } from '../types';
-import { SYSTEM_PROMPT_EN, SYSTEM_PROMPT_HI, SUMMARY_PROMPT_EN, SUMMARY_PROMPT_HI } from '../constants';
+import { SYSTEM_PROMPT_EN, SYSTEM_PROMPT_HI, SUMMARY_PROMPT_EN, SUMMARY_PROMPT_HI, TREND_ANALYSIS_PROMPT_EN, TREND_ANALYSIS_PROMPT_HI } from '../constants';
 
 if (!process.env.API_KEY) {
     throw new Error("API_KEY environment variable not set");
@@ -90,6 +90,38 @@ export const getSummaryFromImage = async (base64Data: string, mimeType: string, 
         return response.text;
     } catch (error) {
         console.error("Error calling Gemini API for summary:", error);
+        return getErrorResponse(language);
+    }
+};
+
+export const getTrendAnalysis = async (reports: Array<{ name: string; base64Data: string; mimeType: string }>, language: Language): Promise<string> => {
+    try {
+        const systemInstruction = language === Language.EN ? TREND_ANALYSIS_PROMPT_EN : TREND_ANALYSIS_PROMPT_HI;
+        
+        const textPart = {
+            text: language === Language.EN 
+                ? `Analyze the trends in the following ${reports.length} medical reports. The file names are: ${reports.map(r => r.name).join(', ')}`
+                : `${reports.length} मेडिकल रिपोर्ट में ट्रेंड्स का विश्लेषण करें। फ़ाइल नाम हैं: ${reports.map(r => r.name).join(', ')}`
+        };
+
+        const imageParts = reports.map(report => ({
+            inlineData: {
+                mimeType: report.mimeType,
+                data: report.base64Data,
+            },
+        }));
+
+        const response: GenerateContentResponse = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: { parts: [textPart, ...imageParts] },
+            config: {
+                systemInstruction,
+            }
+        });
+        
+        return response.text;
+    } catch (error) {
+        console.error("Error calling Gemini API for trend analysis:", error);
         return getErrorResponse(language);
     }
 };

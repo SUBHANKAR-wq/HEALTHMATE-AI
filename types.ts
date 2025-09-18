@@ -1,4 +1,3 @@
-
 export enum Language {
   EN = 'en',
   HI = 'hi',
@@ -7,4 +6,6 @@ export enum Language {
 export interface ChatMessage {
   role: 'user' | 'bot';
   content: string;
+  type?: 'emergency';
+  hospitalInfo?: string;
 }
