@@ -1,4 +1,3 @@
-
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Language } from '../types';
@@ -24,11 +23,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
         let result: string;
+        let response: GenerateContentResponse;
         switch (action) {
             case 'getHealthAdvice': {
                 const { symptoms, language } = payload;
                 const systemInstruction = language === Language.EN ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_HI;
-                const response = await ai.models.generateContent({
+                response = await ai.models.generateContent({
                     model: 'gemini-2.5-flash',
                     contents: symptoms,
                     config: {
@@ -43,17 +43,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
             case 'findNearbyHospitals': {
                 const { lat, lon, language } = payload;
-                const promptEN = `List up to 5 nearby hospitals or medical clinics based on this location: latitude ${lat}, longitude ${lon}. Provide just the names and a brief description or address. Do not add any conversational text before or after the list. Format the output clearly.`;
-                const promptHI = `इस स्थान के आधार पर 5 आस-पास के अस्पतालों या चिकित्सा क्लीनिकों की सूची बनाएं: अक्षांश ${lat}, देशांतर ${lon}। केवल नाम और एक संक्षिप्त विवरण या पता प्रदान करें। सूची से पहले या बाद में कोई भी संवादात्मक पाठ न जोड़ें। आउटपुट को स्पष्ट रूप से प्रारूपित करें।`;
+                const promptEN = `List up to 5 nearby hospitals or medical clinics based on this location: latitude ${lat}, longitude ${lon}. Provide just the names and a brief description or address. Do not add any conversational text before or after the list. Format the output clearly as a markdown list.`;
+                const promptHI = `इस स्थान के आधार पर 5 आस-पास के अस्पतालों या चिकित्सा क्लीनिकों की सूची बनाएं: अक्षांश ${lat}, देशांतर ${lon}। केवल नाम और एक संक्षिप्त विवरण या पता प्रदान करें। सूची से पहले या बाद में कोई भी संवादात्मक पाठ न जोड़ें। आउटपुट को स्पष्ट रूप से मार्कडाउन सूची के रूप में प्रारूपित करें।`;
                 const prompt = language === Language.EN ? promptEN : promptHI;
-                const response = await ai.models.generateContent({
+                response = await ai.models.generateContent({
                     model: 'gemini-2.5-flash',
                     contents: prompt,
                     config: {
                         temperature: 0.3,
+                        tools: [{googleSearch: {}}],
                     }
                 });
                 result = response.text;
+                const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+                if (groundingChunks && groundingChunks.length > 0) {
+                    const sources = groundingChunks
+                        .map((chunk: any) => chunk.web)
+                        .filter(Boolean)
+                        .filter((web: any) => web.uri && web.title)
+                        .map((web: any) => `* [${web.title}](${web.uri})`)
+                        .join('\n');
+                    
+                    if (sources) {
+                        const sourcesTitle = language === Language.EN ? 'Sources' : 'स्रोत';
+                        result += `\n\n**${sourcesTitle}:**\n${sources}`;
+                    }
+                }
                 break;
             }
             case 'getSummaryFromImage': {
@@ -62,9 +77,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const defaultPrompt = language === Language.EN ? "Summarize this medical report." : "इस मेडिकल रिपोर्ट का सारांश दें।";
                 const imagePart = { inlineData: { mimeType, data: base64Data } };
                 const textPart = { text: textPrompt || defaultPrompt };
-                const response: GenerateContentResponse = await ai.models.generateContent({
+                response = await ai.models.generateContent({
                     model: 'gemini-2.5-flash',
-                    contents: { parts: [imagePart, textPart] },
+                    contents: [{ parts: [imagePart, textPart] }],
                     config: { systemInstruction }
                 });
                 result = response.text;
@@ -84,9 +99,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         data: report.base64Data,
                     },
                 }));
-                const response: GenerateContentResponse = await ai.models.generateContent({
+                response = await ai.models.generateContent({
                     model: 'gemini-2.5-flash',
-                    contents: { parts: [textPart, ...imageParts] },
+                    contents: [{ parts: [textPart, ...imageParts] }],
                     config: { systemInstruction }
                 });
                 result = response.text;
