@@ -7,16 +7,17 @@ import {
     TREND_ANALYSIS_PROMPT_EN, TREND_ANALYSIS_PROMPT_HI 
 } from '../constants';
 
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
+    
+    if (!process.env.API_KEY) {
+        console.error("API_KEY environment variable not set");
+        return res.status(500).json({ error: 'Server configuration error: API_KEY is missing.' });
+    }
+
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const { action, payload } = req.body;
 
