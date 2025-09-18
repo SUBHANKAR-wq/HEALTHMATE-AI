@@ -30,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const systemInstruction = language === Language.EN ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_HI;
                 const response = await ai.models.generateContent({
                     model: 'gemini-2.5-flash',
-                    contents: { parts: [{ text: symptoms }] },
+                    contents: symptoms,
                     config: {
                         systemInstruction: systemInstruction,
                         temperature: 0.5,
@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const prompt = language === Language.EN ? promptEN : promptHI;
                 const response = await ai.models.generateContent({
                     model: 'gemini-2.5-flash',
-                    contents: { parts: [{ text: prompt }] },
+                    contents: prompt,
                     config: {
                         temperature: 0.3,
                     }
