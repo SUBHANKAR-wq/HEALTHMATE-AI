@@ -1,3 +1,4 @@
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Language } from '../types';
@@ -6,6 +7,14 @@ import {
     SUMMARY_PROMPT_EN, SUMMARY_PROMPT_HI, 
     TREND_ANALYSIS_PROMPT_EN, TREND_ANALYSIS_PROMPT_HI 
 } from '../constants';
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb', // Set a 10MB limit to handle base64 image uploads
+    },
+  },
+};
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
@@ -79,7 +88,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const textPart = { text: textPrompt || defaultPrompt };
                 response = await ai.models.generateContent({
                     model: 'gemini-2.5-flash',
-                    contents: [{ parts: [imagePart, textPart] }],
+                    contents: { parts: [imagePart, textPart] },
                     config: { systemInstruction }
                 });
                 result = response.text;
@@ -101,7 +110,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 }));
                 response = await ai.models.generateContent({
                     model: 'gemini-2.5-flash',
-                    contents: [{ parts: [textPart, ...imageParts] }],
+                    contents: { parts: [textPart, ...imageParts] },
                     config: { systemInstruction }
                 });
                 result = response.text;
