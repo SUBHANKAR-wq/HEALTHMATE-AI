@@ -18,10 +18,81 @@
     "react/": "https://aistudiocdn.com/react@^19.1.1/",
     "react": "https://aistudiocdn.com/react@^19.1.1",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0",
-    "@vercel/node": "https://aistudiocdn.com/@vercel/node@^5.3.22"
+    "@vercel/node": "https://aistudiocdn.com/@vercel/node@^5.3.22",
+    "marked": "https://esm.sh/marked@12.0.2",
+    "dompurify": "https://esm.sh/dompurify@3.0.6"
   }
 }
 </script>
+<style>
+  /* Basic styling for rendered markdown content in chat bubbles */
+  .prose > :first-child {
+    margin-top: 0;
+  }
+  .prose > :last-child {
+    margin-bottom: 0;
+  }
+  .prose strong {
+    font-weight: 600;
+  }
+  .dark .prose strong {
+    color: #fff;
+  }
+  .prose ul, .prose ol {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+    padding-left: 1.5em;
+  }
+  .prose ul {
+    list-style-type: disc;
+  }
+  .prose ol {
+    list-style-type: decimal;
+  }
+  .prose li {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+  }
+  .prose p {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+  }
+  .prose h3 {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+  }
+  .prose table {
+    width: 100%;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    border-collapse: collapse;
+    overflow-x: auto;
+    display: block;
+    white-space: nowrap;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+  }
+  .dark .prose table {
+    border-color: #4b5563;
+  }
+  .prose th, .prose td {
+    border: 1px solid #e5e7eb; /* gray-200 */
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+  .dark .prose th, .dark .prose td {
+    border-color: #4b5563; /* gray-600 */
+  }
+  .prose th {
+    font-weight: 600;
+    background-color: #f9fafb; /* gray-50 */
+  }
+  .dark .prose th {
+    background-color: #374151; /* gray-700 */
+  }
+</style>
 </head>
   <body class="bg-gray-100 dark:bg-gray-900">
     <div id="root"></div>
